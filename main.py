@@ -3,6 +3,7 @@ import detectencode
 #import gtts
 import mysql.connector
 import time
+import datetime
 
 
 mydb = mysql.connector.connect(
@@ -12,7 +13,8 @@ mydb = mysql.connector.connect(
   database="smartmcc"
 )
 mycursor = mydb.cursor()
-doctorId = '2'                       # should be fixed for every doctor
+doctorId = '7'                       # should be fixed for every doctor
+currentDT = datetime.datetime.now()
 
 
 def check_reservation(userID):
@@ -29,12 +31,13 @@ def available_dates():
     return dates
 
 
-def new_reservation(userID, date, time):
+def new_reservation(userID):
+    date = currentDT.strftime("%Y-%m-%d")
+    time = currentDT.strftime("%H:%M:%S")
     sql = "INSERT INTO user_reservation (user_id, doctor_id, date, time) VALUES (%s,%s, %s, %s)"
     val = (userID, doctorId, date, time)
     mycursor.execute(sql, val)
     mydb.commit()
-    delete_available(date, time)
 
 
 def delete_available(date, time):
@@ -48,6 +51,19 @@ def get_userID_byphone(phone):
     mycursor.execute(sql, (phone,))
     ph = mycursor.fetchone()
     return ph
+
+
+def insert_currentu_sers(userid):
+    today = currentDT.strftime("%Y-%m-%d")
+
+    sql = "INSERT INTO currentUsers (user_id, doctor_id, today) VALUES (%s,%s, %s)"
+    val = (user_id, doctorId, today)
+    mycursor.execute(sql, val)
+    mydb.commit()
+
+
+def cash_acceptor():
+    return 1
 
 
 ex = input("What you want to do? ")
@@ -80,20 +96,24 @@ while ex != '0':
                         detectencode.start(phone)
 
                         print("Your Default Password 123456 please change it")      # maybe create random password
+                        print("We will reserve You now please wait")
+                        currentDT = datetime.datetime.now()
+                        Cdate = currentDT.strftime("%Y-%m-%d")
+                        Ctime = currentDT.strftime("%H:%M:%S")
 
-                        dates = available_dates()
-                        for idx, row in enumerate(dates):
-                            print(idx + 1, "- Date = ", row[2])
-                            print("Time  = ", row[3], "\n")
+                        #choose_date = input("Please Choose Your Preferred Date : ")
+                        #intch = int(choose_date)
+                        #new_reservation(user_id, dates[intch - 1][2], dates[intch - 1][3])
 
-                        choose_date = input("Please Choose Your Preferred Date : ")
-                        intch = int(choose_date)
-                        new_reservation(user_id, dates[intch - 1][2], dates[intch - 1][3])
+                        new_reservation(user_id)
 
-                        print("Cash Acceptor")
+                        cash = cash_acceptor()
+
+                        print("if cash return 1 redirect to current users ")
 
                     else:
-                        print("Cash Acceptor, if return 1 redirect to current users")
+                        cash = cash_acceptor()
+                        print("if cash return 1 redirect to current users")
 
                 # registered on system but his face unknown
                 else:
@@ -115,19 +135,19 @@ while ex != '0':
                             print("Current Users")
 
                         else:
-                            print("Cash Acceptor")
+                            cash = cash_acceptor()
+                            print("if cash return 1 Current Users")
 
                     else:
-                        dates = available_dates()
-                        for idx, row in enumerate(dates):
-                            print(idx+1, "- Date = ", row[2])
-                            print("Time  = ", row[3], "\n")
+                        print("We will reserve You now please wait")
 
-                        choose_date = input("Please Choose Your Preferred Date : ")
-                        intch = int(choose_date)
-                        new_reservation(user_id, dates[intch-1][2], dates[intch-1][3])
-                        print("Redirect to cash acceptor")
-                        print("Current Users")
+                        currentDT = datetime.datetime.now()
+                        Cdate = currentDT.strftime("%Y-%m-%d")
+                        Ctime = currentDT.strftime("%H:%M:%S")
+                        new_reservation(user_id)
+
+                        cash = cash_acceptor()
+                        print("if cash return 1 Current Users")
 
             except mysql.connector.Error as error:
                 print("Failed to get record from database: {}".format(error))
@@ -145,18 +165,16 @@ while ex != '0':
                     print("Current Users")
 
                 else:
-                    print("Cash Acceptor")
+                    cash = cash_acceptor()
 
             else:
-                dates = available_dates()
-                for idx, row in enumerate(dates):
-                    print(idx + 1, "- Date = ", row[2])
-                    print("Time  = ", row[3], "\n")
+                print("We will reserve You now please wait")
 
-                choose_date = input("Please Choose Your Preferred Date : ")
-                intch = int(choose_date)
-                new_reservation(user_id, dates[intch - 1][2], dates[intch - 1][3])
-                print("Redirect to cash acceptor")
+                currentDT = datetime.datetime.now()
+                Cdate = currentDT.strftime("%Y-%m-%d")
+                Ctime = currentDT.strftime("%H:%M:%S")
+                new_reservation(user_id[0])
+                cash = cash_acceptor()
                 print("Current Users")
 
     time.sleep(10)                       # program will catch a picture every 10 seconds
